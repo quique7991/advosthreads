@@ -1,0 +1,33 @@
+Doubts
+1. what size of stack should I use?
+2. What happens when we move from one thread to another that doesn't have any work to do?
+3. Does the switching time is counted in the quantum? Or only when it starts executing?
+4. When a program yields, does we restart the timer?
+
+
+
+
+Notes to my self
+1. Remember to free the stack.
+
+http://www.evanjones.ca/software/threading.html (Implementing Fibers Using makecontext)
+
+Essentially, 
+* getcontext saves the current execution context
+* setcontext switches to the specified execution context
+* swapcontext will save the current context and switch to another
+* makecontext creates a new execution context. 
+
+To create a new thread, 
+1. we call getcontext to retrieve the current context then modify the members of the ucontext_t struct to specify the new context. A
+2. We must allocate a new stack, but this time the library takes care of the direction of the stack growth. 
+3. Then we call makecontext and specify the function and arguments to execute in the thread
+
+How to achieve a context switch?
+* The thread must explicitly yield control to allow other thread to run. 
+* The swapcontext function can be used to stop executing one thread and continue executing another..
+
+*Use the uc_link for the return!!!
+
+http://nitish712.blogspot.com/2012/10/thread-library-using-context-switching.html
+https://machiry.wordpress.com/2012/01/02/mfiber-simple-user-land-thread-library/
