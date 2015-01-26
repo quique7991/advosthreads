@@ -5,6 +5,7 @@
 
 struct sigaction sa;
 struct itimerval timer;
+sigset_t signal_control;
 
 void timer_handler (int signum)
 {
@@ -13,6 +14,11 @@ void timer_handler (int signum)
 }
 
 void setTimer(unsigned int time){
+        ///Initialize signal control variable
+  sigemptyset(&signal_control);
+        //Add the only signal that we are interested in: virtual timer
+  sigaddset(&signal_control,SIGVTALRM);
+
  /* Install timer_handler as the signal handler for SIGVTALRM. */
  memset (&sa, 0, sizeof (sa));
  sa.sa_handler = &timer_handler;
@@ -33,5 +39,13 @@ int main ()
 {
  setTimer(250000);
  /* Do busy work. */
+ sigprocmask(SIG_BLOCK, &signal_control, NULL);
+ int counter = 0;
+ while(counter < 1000000000){
+	counter++;
+ }
+ printf("Hello\n");
+ sigprocmask(SIG_UNBLOCK,&signal_control,NULL);
+
  while (1);
 }

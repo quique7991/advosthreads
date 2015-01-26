@@ -1,9 +1,21 @@
+New doubts:
+* When a thread cancels other thread in the man of pthreads_cancel, it says that the threat  3. The thread is terminated.  (See pthread_exit(3).) What this means?
+* When a thread is cancel the documentations says that "After a canceled thread has terminated, a join with that thread using pthread_join(3)  obtains
+PTHREAD_CANCELED  as the thread's exit status.  (Joining with a thread is the only way to know
+that cancellation has completed.)" What value do we use a pthread_canceled?
+
+
 Doubts
 1. what size of stack should I use?
+64 kb (signals use 8kB) would be ok, (include signal.h check the piazza file)
 2. What happens when we move from one thread to another that doesn't have any work to do?
+It is not required...
 3. Does the switching time is counted in the quantum? Or only when it starts executing?
+One time shoot timer
 4. When a program yields, does we restart the timer?
+Yes
 
+Main is also a thread in the linked list.
 
 
 
