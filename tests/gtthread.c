@@ -59,9 +59,7 @@ RETURN VALUE
 
 int  gtthread_create(gtthread_t *thread, void *(*start_routine)(void *), void *arg){
   //Push the node to the linked list
-  deactivate_signal();///Deactivate signals to be sure that the node is created correctly
   push_node(start_routine, arg, thread);
-  activate_signal();
   return 0;
 }
 /*
@@ -133,17 +131,18 @@ void gtthread_exit(void *retval){
   deactivate_signal();
   ///Get current context information
   struct node* current_node = get_current(); 
-  //Pop thread from the queue
-  pop_node(current_node);
   ///Push results so other threads can be the retval return
   copy_result(current_node->id,retval);
+  //Pop thread from the queue
+  pop_node(current_node);
   //Reactivate signals
-  deactivate_signal();
+  activate_signal();
   if(get_thread_counter() == 0){///If this was the last thread, exit
+    //end();
     exit(0);
   }
   else{///Yield the processor to the next thread.
-    yield();
+    jump_next_context();
   }
 }
 

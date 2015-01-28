@@ -8,7 +8,7 @@
 #include <sys/time.h>
 #include "definitions.h"
 
-///Warning: Never use this function in combination with either sleep or usleep, this clean the signals and other configurations
+/*Warning: Never use this function in combination with either sleep or usleep, this clean the signals and other configurations*/
 
 /*
 This function set the the time period for each signal and the function that behaves

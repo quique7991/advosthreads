@@ -126,51 +126,11 @@ struct node * next_and_move(){
 	return current;
 }
 
-int initialize_join_array_value(long id, struct node*stored){
-	join_results[id].is_running=1;
-	join_results[id].node_information	= stored;		
-	return 0;
-}
-
-ucontext_t* initialize_context(void* (*fn1)(void *), void *arg){
-	int error;
-	ucontext_t* result;
-	result = (ucontext_t *) malloc(sizeof(ucontext_t));
-	error=getcontext((result));
-	if(error==-1)
-		puts("Error creating the context\n");
-	//Initialize the uc_link
-	(result)->uc_link=0;//sched_thread->thread_context;
-	(result)->uc_stack.ss_sp=malloc(MEM);
-	if (((result)->uc_stack.ss_sp) == NULL) {
-    	int err = errno;        /* Preserve the errno from the failed malloc(). */
-    	puts("Malloc failed");  /* This puts() could change the global errno. */
-    	puts(strerror(err));
-	}		
-	///Update the other variables.		
-	(result)->uc_stack.ss_size=MEM;
-	(result)->uc_stack.ss_flags=0;
-	makecontext((result), (void*)return_handler, 2,(void*)fn1,arg);	
-	return result;
-}
-
-int increase_join_array_size(){
-	int i;
-	join_results = (struct to_join_result*) realloc(join_results,2*current_max_threads*sizeof(struct to_join_result));
-	for(i=current_max_threads; i < 2*current_max_threads; ++i){
-		join_results[i].return_value = NULL;
-		join_results[i].ready = 0;
-		join_results[i].waiting_to_join = -1;		
-		join_results[i].is_running=0;		
-	}
-	current_max_threads = 2*current_max_threads;
-	return 0;
-}
-
-
 /*create a new node*/
 ucontext_t * push_node(void* (*fn1)(void *), void *arg, gtthread_t *value){
+	struct node *tmp_ptr =NULL;
 	ucontext_t * result;
+	int error;
 	///Push a new node into the list	
 	if(first){
 		thread_counter=1;
@@ -180,47 +140,80 @@ ucontext_t * push_node(void* (*fn1)(void *), void *arg, gtthread_t *value){
 		head.id=next_id;
 		*value = next_id;
 		head.active=1;
-		initialize_join_array_value(next_id,&head);
+		join_results[next_id].is_running=1;
+		join_results[next_id].node_information	= &head;			
 		++next_id;
-		ucontext_t* response = initialize_context(fn1, arg);
-		deactivate_signal();
-		head.thread_context = response;
+		head.thread_context = (ucontext_t *) malloc(sizeof(ucontext_t));
+		error=getcontext((head.thread_context));
+		if(error==-1)
+			puts("Error creating the context\n");
+		//Initialize the uc_link
+		(head.thread_context)->uc_link=0;//sched_thread->thread_context;
+		(head.thread_context)->uc_stack.ss_sp=malloc(MEM);
+    	if (((head.thread_context)->uc_stack.ss_sp) == NULL) {
+        	int err = errno;        /* Preserve the errno from the failed malloc(). */
+        	puts("Malloc failed");  /* This puts() could change the global errno. */
+        	puts(strerror(err));
+    	}		
+    	///Update the other variables.		
+		(head.thread_context)->uc_stack.ss_size=MEM;
+		(head.thread_context)->uc_stack.ss_flags=0;
+		makecontext((head.thread_context), (void*)return_handler, 2,(void*)fn1,arg);
 		next_thread = &head;
 		current = &head;
 		tail = &head;
 		head.next = NULL;
 		result = (head.thread_context);
-		activate_signal();
 	}
 	else{
-		struct node* tmp_node = (struct node *) malloc(sizeof(struct node));
+		tail->next = (struct node *) malloc(sizeof(struct node));
+		tmp_ptr = tail->next;
+		tmp_ptr->id = next_id;
 		*value = next_id;
-		///Get the value of the current context, just to initialize it	
-		ucontext_t *tmp_result=initialize_context(fn1,arg);
-		deactivate_signal();
-		(tail->next)= tmp_node;
-		(tail->next)->active=1;
-		(tail->next)->id = next_id;		
-		(tail->next)->thread_context = tmp_result;
-		initialize_join_array_value(next_id,(tail->next));
-		activate_signal();
-		++next_id;		
-		tail = (tail->next);
+		join_results[next_id].is_running=1;		
+		join_results[next_id].node_information	= tmp_ptr;		
+		++next_id;
+		tmp_ptr->active=1;
+		///Get the value of the current context, just to initialize it		
+		tmp_ptr->thread_context = (ucontext_t *) malloc(sizeof(ucontext_t));		
+		error=getcontext((tmp_ptr->thread_context));
+		if(error==-1)
+			puts("Error creating the context\n");	
+		//Initialize the uc_link
+		//TODO: UC_LINK should be variable					
+		(tmp_ptr->thread_context)->uc_link=0;//sched_thread->thread_context;
+		(tmp_ptr->thread_context)->uc_stack.ss_sp=malloc(MEM);
+    	if (((tmp_ptr->thread_context)->uc_stack.ss_sp) == NULL) {
+        	int err = errno;        /* Preserve the errno from the failed malloc(). */
+        	puts("Malloc failed");  /* This puts() could change the global errno. */
+        	puts(strerror(err));
+    	}		
+    	///Update the other variables.		
+		(tmp_ptr->thread_context)->uc_stack.ss_size=MEM;
+		(tmp_ptr->thread_context)->uc_stack.ss_flags=0;
+		makecontext((tmp_ptr->thread_context), (void*)return_handler, 2,(void*)fn1,arg);
+		tail = tmp_ptr;
 		tail->next = NULL;
 		result = (tail->thread_context);
 		++thread_counter;
 		++global_counter;
 	}
 	if(global_counter==current_max_threads){
-		increase_join_array_size();
+		int i;
+		join_results = (struct to_join_result*) realloc(join_results,2*current_max_threads*sizeof(struct to_join_result));
+		for(i=current_max_threads; i < 2*current_max_threads; ++i){
+			join_results[i].return_value = NULL;
+			join_results[i].ready = 0;
+			join_results[i].waiting_to_join = -1;		
+			join_results[i].is_running=0;		
+		}
+		current_max_threads = 2*current_max_threads;
 	}
 	return result;
 }
 
 int pop_node_gtthread(gtthread_t thread){
 	///TODO: Verify what we require to do when a value is cancel, for joining afterwards
-	join_results[thread].return_value = (void*) -1;
-	join_results[thread].ready = 1;
 	return pop_node(join_results[thread].node_information);
 }
 

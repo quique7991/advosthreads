@@ -75,10 +75,6 @@ int pop_node_gtthread(gtthread_t thread);
 */
 int copy_result(gtthread_t id, void *retval);
 /*
-	Initialize a pointer to the sched thread.
-*/
-ucontext_t	* initialize_sched_thread();
-/*
 	It is the function wrapper for the thread execution.
 */
 void return_handler(void* (*start_routine)(void *), void *arg);

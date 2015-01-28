@@ -5,7 +5,7 @@
 long seconds=0;
 long microseconds=0;
 ucontext_t Main;
-
+ucontext_t* sched;
 ///TODO Fix the main access to the sistem
 void scheduler (int signum){
 	///Deactivate the signal, similar to disabling interrupts
@@ -16,16 +16,14 @@ void scheduler (int signum){
 	struct node* next_thread;
 	struct node* current;	
 	///If there are no active threads
-	if(active_threads == 0){
-		printf("No active threads\n");
-	}
-	else if(active_threads==1){
+	if(active_threads==1){
 		///Keep the same thread running
 		next_thread = next();
 		///reinitilize timer, may not be required.
+		//modify_timer(seconds, microseconds, 0, 0);		
 		set_timer(seconds,microseconds, (void*) &scheduler);
 		activate_signal(); // activate signal again
-		swapcontext(&Main,next_thread->thread_context); ///go to the next context;
+		//swapcontext(next_thread->thread_context,next_thread->thread_context); ///go to the next context;
 	}
 	else{
 		///get the value of the current context
@@ -33,9 +31,15 @@ void scheduler (int signum){
 		//get the context to go
 		next_thread = next_and_move();
 		///The system is already runnign
+		modify_timer(seconds, microseconds, 0, 0);
 		set_timer(seconds,microseconds, (void*) &scheduler);//reinitialize timer, may not be required
-		activate_signal();///reactivate signal handler.
-		swapcontext(current->thread_context,next_thread->thread_context);////Swap to the next thread.
+		//activate_signal();///reactivate signal handler.
+		//TODO:Verify why this is required?
+		//if(current->active==1){
+		//swapcontext(current->thread_context,next_thread->thread_context);////Swap to the next thread.
+		if(current!=next_thread){
+			swapcontext(current->thread_context,next_thread->thread_context);
+		}///Else go ahead :)
 	}
 }
 
@@ -49,8 +53,10 @@ void init_timer_scheduler(long time){
 		seconds=0;
 		microseconds=time;
 	}
-	set_timer(seconds,microseconds, (void*) &scheduler);
    	getcontext(&Main);	
    	///TODO push MAIN
    	push_main(&Main);
+   	sched = initialize_sched_thread(&scheduler);
+	set_timer(seconds,microseconds, (void*) &scheduler);
 }
+

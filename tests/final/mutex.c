@@ -115,7 +115,7 @@ int mutex_lock(gtthread_mutex_t* mutex){
 }
 
 ///Unlock the mutex
-int mutec_unlock(gtthread_mutex_t* mutex){
+int mutex_unlock(gtthread_mutex_t* mutex){
 	deactivate_signal();
 	if((mutex->owner) == (get_current()->id)){///Verify if it is the owner of the lock.
 		mutex->is_locked = 0;

@@ -3,25 +3,25 @@
 
 #include <ucontext.h>
 
-///Initial amount of locks in the system
+/*Initial amount of locks in the system*/
 #define MAX_LOCKS 100
-///Memory Stack per thread size
+/*Memory Stack per thread size*/
 #define MEM 64000
-///Initial number of threads
+/*Initial number of threads*/
 #define NUM_THREADS 100
 
 
-///Define the thread
+/*Define the thread*/
 typedef long gtthread_t;
 
-///Define the mutex type
+/*Define the mutex type*/
 typedef struct {
     int is_locked;
     long id;
     gtthread_t owner;
 } gtthread_mutex_t;
 
-//Define the nodes for the linked list
+/*Define the nodes for the linked list*/
 struct node{
   gtthread_t id;
   int active;
@@ -29,7 +29,7 @@ struct node{
   struct node *next;
 };
 
-//Define the structure for the result storage
+/*Define the structure for the result storage*/
 struct to_join_result{
 	void * return_value;
 	int ready;

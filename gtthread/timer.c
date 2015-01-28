@@ -5,7 +5,7 @@ struct itimerval timer;
 sigset_t signal_control;
 
 void yield(){
-	raise(SIGVTALRM);//Call the time handler
+	raise(SIGVTALRM);/*Call the time handler*/
 }
 
 void activate_signal(){
@@ -18,19 +18,19 @@ void deactivate_signal(){
 
 int set_timer(long seconds,long microseconds, void  (*timer_handler)(int) ){
 	int result;
-	///Initialize signal control variable
+	/*/Initialize signal control variable*/
 	sigemptyset(&signal_control);
-	//Add the only signal that we are interested in: virtual timer
+	/*Add the only signal that we are interested in: virtual timer*/
 	sigaddset(&signal_control,SIGVTALRM);
-	///Initialize struct
+	/*/Initialize struct*/
 	memset (&signal_action, 0, sizeof (signal_action));
-	///initialize the mask for the sigaction
+	/*/initialize the mask for the sigaction*/
 	sigemptyset(&signal_action.sa_mask);	
-	///Empty the flags
+	/*/Empty the flags*/
 	signal_action.sa_flags=0;
-	//Assign the function handler
+	/*Assign the function handler*/
  	signal_action.sa_handler = timer_handler;
- 	///Indicate the use of the virtual time
+ 	/*/Indicate the use of the virtual time*/
  	if(sigaction (SIGVTALRM, &signal_action, NULL)== -1){
          printf("error with: sigaction\n");
         exit(EXIT_FAILURE);		

@@ -1,4 +1,5 @@
 #include "gtthread.h"
+#include "final/mutex.h"
 /* Just an example. Nothing to see here. */
 
 
@@ -14,8 +15,8 @@ already owns with pthread_mutex_lock(3) . If the mutex is of the “normal” or
 pthread_mutex_lock(3) simply suspends the calling thread forever.
  */
 int  gtthread_mutex_init(gtthread_mutex_t *mutex){
-
-	return 0;
+	int result = init_lock(mutex);
+	return result;
 }
 /*
 pthread_mutex_lock locks the given mutex. If the mutex is currently unlocked, it becomes 
@@ -24,8 +25,8 @@ is already locked by another thread, pthread_mutex_lock suspends the calling thr
 is unlocked.
 */
 int  gtthread_mutex_lock(gtthread_mutex_t *mutex){
-
-	return 0;
+	int result = mutex_lock(mutex);
+	return result;
 }
 
 /*
@@ -34,8 +35,8 @@ the calling thread on entrance to pthread_mutex_unlock. If the mutex is of the �
 pthread_mutex_unlock always returns it to the unlocked state.
 */
 int  gtthread_mutex_unlock(gtthread_mutex_t *mutex){
-
-	return 0;
+	int result = mutex_unlock(mutex);
+	return result;
 }
 /* gtthread_mutex_destroy() and gtthread_mutex_trylock() do not need to be
  * implemented */

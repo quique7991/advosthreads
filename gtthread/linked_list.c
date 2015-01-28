@@ -1,14 +1,14 @@
 #include "linked_list.h"
 
 
-int first = 1;///Boolean that indicates that there are no values in the list
-struct node head;///The list always exists, but can be composed of null pointers
-struct node *tail=NULL;///Last value in the queue, initially it does not exists. (pointer)
+int first = 1;/*/Boolean that indicates that there are no values in the list*/
+struct node head;/*/The list always exists, but can be composed of null pointers*/
+struct node *tail=NULL;/*/Last value in the queue, initially it does not exists. (pointer)*/
 struct node * current=NULL;
-struct node * next_thread=NULL;///Value that is going to execute next (pointer)
-ucontext_t *main_thread=NULL;///Pointer to the context of the main.
+struct node * next_thread=NULL;/*/Value that is going to execute next (pointer)*/
+ucontext_t *main_thread=NULL;/*/Pointer to the context of the main.*/
 struct node *sched_thread=NULL;
-long thread_counter; //Counter of the thread counters required
+long thread_counter; /*Counter of the thread counters required*/
 long global_counter;
 long current_max_threads=NUM_THREADS;
 gtthread_t next_id=0;
@@ -37,39 +37,12 @@ void return_handler(void* (*start_routine)(void *), void *arg){
 	join_results[current->id].ready = 1;
 	pop_node(current);
 	if(thread_counter==0){
-		//end();
 		exit(0);
 	}
 	jump_next_context();
 }
 
-ucontext_t* initialize_sched_thread(void  (*timer_handler)(int)){
-	sched_thread = (struct node *) malloc(sizeof(struct node));	
-	sched_thread->id=-1;
-	sched_thread->next = NULL;
-	sched_thread->active = 1;
-	int error;	
-	sched_thread->thread_context = (ucontext_t *) malloc(sizeof(ucontext_t));		
-	error=getcontext(sched_thread->thread_context);
-	if(error==-1)
-		puts("Error creating the context\n");	
-	//Initialize the uc_link
-	//TODO: UC_LINK should be variable					
-	(sched_thread->thread_context)->uc_link=0;
-	(sched_thread->thread_context)->uc_stack.ss_sp=malloc(MEM);
-	if (((sched_thread->thread_context)->uc_stack.ss_sp) == NULL) {
-    	int err = errno;        /* Preserve the errno from the failed malloc(). */
-    	puts("Malloc failed");  /* This puts() could change the global errno. */
-    	puts(strerror(err));
-	}		
-	///Update the other variables.		
-	(sched_thread->thread_context)->uc_stack.ss_size=MEM;
-	(sched_thread->thread_context)->uc_stack.ss_flags=0;
-	makecontext((sched_thread->thread_context), (void*)timer_handler, 1,0);	
-	return (sched_thread->thread_context);
-}
-
-//This instruction has to be always executed before any other action can be called
+/*This instruction has to be always executed before any other action can be called*/
 int push_main(ucontext_t *main_context){
 	int i;
 	join_results = (struct to_join_result*) malloc(NUM_THREADS*sizeof(struct to_join_result));
@@ -83,7 +56,7 @@ int push_main(ucontext_t *main_context){
 	if(first){
 		thread_counter=1;
 		first = 0;
-		///Get the value of the current context, just to initialize it
+		/*/Get the value of the current context, just to initialize it*/
 		head.id=next_id;
 		head.active=1;
 		join_results[next_id].is_running=1;
@@ -96,7 +69,7 @@ int push_main(ucontext_t *main_context){
 	}
 	else{
         fprintf(stderr, "Main always have to be the first node in the ready list\n");
-        exit(EXIT_FAILURE); //indicate failure.		
+        exit(EXIT_FAILURE); /*indicate failure.		*/
 	}	
 	return 0;
 }
@@ -107,7 +80,7 @@ struct node * get_current(){
 
 struct node * next(){
 	struct node *result;
-	if(!first){///List is not empty
+	if(!first){/*/List is not empty*/
 		result = next_thread;
 	}
 	else{
@@ -139,15 +112,15 @@ ucontext_t* initialize_context(void* (*fn1)(void *), void *arg){
 	error=getcontext((result));
 	if(error==-1)
 		puts("Error creating the context\n");
-	//Initialize the uc_link
-	(result)->uc_link=0;//sched_thread->thread_context;
+	/*Initialize the uc_link*/
+	(result)->uc_link=0;/*sched_thread->thread_context;*/
 	(result)->uc_stack.ss_sp=malloc(MEM);
 	if (((result)->uc_stack.ss_sp) == NULL) {
     	int err = errno;        /* Preserve the errno from the failed malloc(). */
     	puts("Malloc failed");  /* This puts() could change the global errno. */
     	puts(strerror(err));
 	}		
-	///Update the other variables.		
+	/*/Update the other variables.		*/
 	(result)->uc_stack.ss_size=MEM;
 	(result)->uc_stack.ss_flags=0;
 	makecontext((result), (void*)return_handler, 2,(void*)fn1,arg);	
@@ -171,18 +144,20 @@ int increase_join_array_size(){
 /*create a new node*/
 ucontext_t * push_node(void* (*fn1)(void *), void *arg, gtthread_t *value){
 	ucontext_t * result;
-	///Push a new node into the list	
+	ucontext_t* response;
+	ucontext_t *tmp_result;
+	/*/Push a new node into the list	*/
 	if(first){
 		thread_counter=1;
 		++global_counter;
 		first = 0;
-		///Get the value of the current context, just to initialize it
+		/*/Get the value of the current context, just to initialize it*/
 		head.id=next_id;
 		*value = next_id;
 		head.active=1;
 		initialize_join_array_value(next_id,&head);
 		++next_id;
-		ucontext_t* response = initialize_context(fn1, arg);
+		response = initialize_context(fn1, arg);
 		deactivate_signal();
 		head.thread_context = response;
 		next_thread = &head;
@@ -195,8 +170,8 @@ ucontext_t * push_node(void* (*fn1)(void *), void *arg, gtthread_t *value){
 	else{
 		struct node* tmp_node = (struct node *) malloc(sizeof(struct node));
 		*value = next_id;
-		///Get the value of the current context, just to initialize it	
-		ucontext_t *tmp_result=initialize_context(fn1,arg);
+		/*/Get the value of the current context, just to initialize it	*/
+		tmp_result=initialize_context(fn1,arg);
 		deactivate_signal();
 		(tail->next)= tmp_node;
 		(tail->next)->active=1;
@@ -218,7 +193,7 @@ ucontext_t * push_node(void* (*fn1)(void *), void *arg, gtthread_t *value){
 }
 
 int pop_node_gtthread(gtthread_t thread){
-	///TODO: Verify what we require to do when a value is cancel, for joining afterwards
+	/*/TODO: Verify what we require to do when a value is cancel, for joining afterwards*/
 	join_results[thread].return_value = (void*) -1;
 	join_results[thread].ready = 1;
 	return pop_node(join_results[thread].node_information);
@@ -227,12 +202,12 @@ int pop_node_gtthread(gtthread_t thread){
 int pop_node(struct node *toErase){
 	int found = 0;
 	struct node *temp_pointer;
-	if(toErase==(&head)){///Node to erase is the head
-		if(head.next == NULL){///It was the last context in the list.
-			//free(head.thread_context);
+	if(toErase==(&head)){/*/Node to erase is the head*/
+		if(head.next == NULL){/*/It was the last context in the list.*/
+			/*free(head.thread_context);*/
 			head.thread_context = NULL;
 			head.active=0;
-			head.next = NULL;///It was already null, it just for safety.
+			head.next = NULL;/*/It was already null, it just for safety.*/
 			first=1;
 			tail=NULL;
 			current=NULL;
@@ -240,44 +215,44 @@ int pop_node(struct node *toErase){
 			--thread_counter;
 
 		}
-		else{///Substitute the head to the next value in the list.
-			//free(head.thread_context);
+		else{/*/Substitute the head to the next value in the list.*/
+			/*free(head.thread_context);*/
 			head.thread_context = (head.next)->thread_context;
 			head.id = (head.next)->id;			
 			temp_pointer = head.next;
 			head.next = temp_pointer->next;
 			head.active = temp_pointer->active;
 			free(temp_pointer);
-			//TODO verify the assignation of current, next_thread and tail
+			/*TODO verify the assignation of current, next_thread and tail*/
 			current = &head;
 			next_thread = &head;
 			join_results[head.id].node_information = &head;
 			--thread_counter;
 		}
 	}
-	else{///It is not the head.
-		struct node *temp_pointer = head.next;///Start with the value that follows the head..
-		struct node *previous_node = &head;///Initially previous node is the head
-		while(temp_pointer != NULL){//While there are more values not visited in the list
-			if(temp_pointer == toErase){/// If the node is found.
-				///Reasign next of previous node
+	else{/*/It is not the head.*/
+		struct node *temp_pointer = head.next;/*/Start with the value that follows the head.*/
+		struct node *previous_node = &head;/*/Initially previous node is the head*/
+		while(temp_pointer != NULL){/*While there are more values not visited in the list*/
+			if(temp_pointer == toErase){/*/ If the node is found.*/
+				/*/Reasign next of previous node*/
 				previous_node->next = temp_pointer->next;
-				//Free the stack of the context that is being pop.
+				/*Free the stack of the context that is being pop.*/
 				free((temp_pointer->thread_context)->uc_stack.ss_sp);
-				///Free the context
+				/*/Free the context*/
 				free((temp_pointer->thread_context));				
-				///Free the node
+				/*/Free the node*/
 				free(temp_pointer);				
-				found=1;///Node was found.
-				thread_counter--;///Reduce the number of threads.
+				found=1;/*/Node was found.*/
+				thread_counter--;/*/Reduce the number of threads.*/
 				break;
 			}
-			previous_node = temp_pointer;///Update the previous node
-			temp_pointer = previous_node->next;///Update the next Node
+			previous_node = temp_pointer;/*/Update the previous node*/
+			temp_pointer = previous_node->next;/*/Update the next Node*/
 		}
-		if(!found){///If not found, error
+		if(!found){/*/If not found, error*/
 	        fprintf(stderr, "Pointer does not exists in the linked list\n");
-	        exit(EXIT_FAILURE); //indicate failure.
+	        exit(EXIT_FAILURE); /*indicate failure.*/
 		}
 	}
 	return 0;
@@ -287,18 +262,18 @@ int pop_node(struct node *toErase){
 void end(){
 	struct node *to_erase;
 	struct node * tmp_ptr;
-	///First clean the memory of the main thread context
+	/*/First clean the memory of the main thread context*/
 	free(main_thread);
 	to_erase=&head;
 	while(to_erase!=NULL){
 		tmp_ptr = to_erase;
 		to_erase = to_erase->next;
-		//Free the stack
+		/*Free the stack*/
 		free((tmp_ptr->thread_context)->uc_stack.ss_sp);
-		///Free the context
+		/*/Free the context*/
 		free((tmp_ptr->thread_context));				
-		if(tmp_ptr!=(&head)){///If the node is not the head.
-			///Free the node
+		if(tmp_ptr!=(&head)){/*/If the node is not the head.*/
+			/*/Free the node*/
 			free(tmp_ptr);				
 		}
 	}
@@ -321,7 +296,7 @@ int getValue(gtthread_t thread, void **ret){
 		}
 	}
 	else{
-		return -1; //value does not exists;
+		return -1; /*value does not exists;*/
 	}
 	return result;
 }
