@@ -11,22 +11,29 @@ void* worker2(void* arg)
 
 void* worker(void* arg)
 {
+	void *ret;
 	gtthread_t th;
 
 	gtthread_create(&th, worker2, NULL);
+	printf("Worker 2 created\n");
 	gtthread_cancel(th);
-	gtthread_join(th, NULL);
-
+	printf("Worker 2 canceled\n");
+	gtthread_join(th, &ret);
+	printf("Worker 2 returned: %i\n",(int) ret);
 	while(1);
 }
 
 int main()
 {
+	void *ret;
 	gtthread_t th;
 
-	gtthread_init(1000);
+	gtthread_init(1);
 	gtthread_create(&th, worker, NULL);
+	printf("Worker 1 created\n");
 	gtthread_cancel(th);
-	gtthread_join(th, NULL);
+	printf("Worker 1 canceled\n");
+	gtthread_join(th, &ret);
+	printf("Worker 1 returned: %i\n",(int) ret);
 	return 0;
 }

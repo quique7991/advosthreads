@@ -21,7 +21,7 @@ int main()
 	int i;
 	gtthread_t threads[NUM_THREADS];
 
-	gtthread_init(1000);
+	gtthread_init(100);
 
 	gtthread_mutex_init(&g_mutex);
 

@@ -6,7 +6,7 @@
 
 void* worker(void* arg)
 {
-	for(;;);
+	gtthread_join(0,NULL);
 }
 
 int main()

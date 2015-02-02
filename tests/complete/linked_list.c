@@ -1,15 +1,13 @@
 #include "linked_list.h"
 
-
 int first = 1;/*/Boolean that indicates that there are no values in the list*/
 struct node head;/*/The list always exists, but can be composed of null pointers*/
 struct node *tail=NULL;/*/Last value in the queue, initially it does not exists. (pointer)*/
 struct node * current=NULL;
 struct node * next_thread=NULL;/*/Value that is going to execute next (pointer)*/
 ucontext_t *main_thread=NULL;/*/Pointer to the context of the main.*/
-struct node *sched_thread=NULL;
 long thread_counter; /*Counter of the thread counters required*/
-long global_counter;
+long global_counter; /*Global counter of all the threads that have being created*/
 long current_max_threads=NUM_THREADS;
 gtthread_t next_id=0;
 struct to_join_result* join_results;
@@ -113,7 +111,7 @@ ucontext_t* initialize_context(void* (*fn1)(void *), void *arg){
 	if(error==-1)
 		puts("Error creating the context\n");
 	/*Initialize the uc_link*/
-	(result)->uc_link=0;/*sched_thread->thread_context;*/
+	(result)->uc_link=0;
 	(result)->uc_stack.ss_sp=malloc(MEM);
 	if (((result)->uc_stack.ss_sp) == NULL) {
     	int err = errno;        /* Preserve the errno from the failed malloc(). */
@@ -260,25 +258,9 @@ int pop_node(struct node *toErase){
 
 
 void end(){
-	struct node *to_erase;
-	struct node * tmp_ptr;
 	/*/First clean the memory of the main thread context*/
 	free(main_thread);
-	to_erase=&head;
-	while(to_erase!=NULL){
-		tmp_ptr = to_erase;
-		to_erase = to_erase->next;
-		/*Free the stack*/
-		free((tmp_ptr->thread_context)->uc_stack.ss_sp);
-		/*/Free the context*/
-		free((tmp_ptr->thread_context));				
-		if(tmp_ptr!=(&head)){/*/If the node is not the head.*/
-			/*/Free the node*/
-			free(tmp_ptr);				
-		}
-	}
 	free(join_results);
-	free(sched_thread);
 }
 
 long get_thread_counter(){

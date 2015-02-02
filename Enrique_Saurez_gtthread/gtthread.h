@@ -1,11 +1,17 @@
+/*
+Enrique Saurez Apuy
+gtid: 903061622
+Spring 2015
+*/
+
 #ifndef __GTTHREAD_H
 #define __GTTHREAD_H
 
-#include "final/linked_list.h"
-#include "final/mutex.h"
-#include "final/definitions.h"
-#include "final/scheduler.h"
-#include "final/timer.h"
+#include "linked_list.h"
+#include "mutex.h"
+#include "definitions.h"
+#include "scheduler.h"
+#include "timer.h"
 
 /* Must be called before any of the below functions. Failure to do so may
  * result in undefined behavior. 'period' is the scheduling quantum (interval)
@@ -51,4 +57,4 @@ int  gtthread_mutex_unlock(gtthread_mutex_t *mutex);
 /* gtthread_mutex_destroy() and gtthread_mutex_trylock() do not need to be
  * implemented */
 
-#endif // __GTTHREAD_H
+#endif /*__GTTHREAD_H*/

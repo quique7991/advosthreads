@@ -7,6 +7,7 @@
 void* worker(void* arg)
 {
 	int i;
+	printf("Hello is thread %lu\n",gtthread_self());
 	for(i = 0; i < 99999999; ++i);
 }
 
@@ -14,7 +15,7 @@ int main()
 {
 	gtthread_t th1, th2;
 
-	gtthread_init(1000);
+	gtthread_init(1);
 
 	gtthread_create(&th1, worker, (void*)1);
 	gtthread_create(&th2, worker, (void*)1);
